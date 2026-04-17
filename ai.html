@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Joke &amp; Riddle Generator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f5f5f0;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1.25rem;
+    }
+
+    .header-icon { font-size: 22px; }
+
+    .header-title {
+      font-size: 20px;
+      font-weight: 500;
+      color: #1a1a1a;
+    }
+
+    .mode-toggle {
+      display: flex;
+      background: #e8e6e0;
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 1.5rem;
+      gap: 4px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 8px 0;
+      font-size: 14px;
+      font-weight: 500;
+      border: none;
+      border-radius: 7px;
+      background: transparent;
+      color: #888;
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s;
+    }
+
+    .mode-btn.active {
+      background: #ffffff;
+      color: #1a1a1a;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 12px;
+      padding: 2rem 1.5rem;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.25rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      transition: border-color 0.2s;
+    }
+
+    .card.riddle-mode { border-color: rgba(99, 73, 168, 0.3); }
+
+    .placeholder {
+      font-size: 15px;
+      color: #888;
+      font-style: italic;
+    }
+
+    .riddle-badge {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #7c5cbf;
+      background: #f0ebfc;
+      border-radius: 20px;
+      padding: 3px 10px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .card-q {
+      font-size: 18px;
+      font-weight: 500;
+      color: #1a1a1a;
+      line-height: 1.5;
+      animation: fadeIn 0.35s ease;
+    }
+
+    .card-divider {
+      width: 40px;
+      height: 1px;
+      background: rgba(0,0,0,0.12);
+    }
+
+    .card-a {
+      font-size: 16px;
+      color: #555;
+      line-height: 1.6;
+      animation: fadeIn 0.35s ease;
+    }
+
+    .main-btn {
+      display: block;
+      width: 100%;
+      padding: 12px 28px;
+      font-size: 15px;
+      font-weight: 500;
+      border-radius: 8px;
+      border: 1px solid rgba(0,0,0,0.2);
+      background: transparent;
+      color: #1a1a1a;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.2s, color 0.2s, transform 0.1s;
+    }
+
+    .main-btn:hover { background: #f0ede8; }
+    .main-btn:active { transform: scale(0.98); }
+
+
+    .heard-btn {
+      display: block;
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px 28px;
+      font-size: 15px;
+      font-weight: 500;
+      border-radius: 8px;
+      border: 1px solid rgba(0,0,0,0.2);
+      background: transparent;
+      color: #1a1a1a;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, transform 0.1s;
+    }
+
+    .heard-btn:hover { background: #f0ede8; color: #555; }
+    .heard-btn:active { transform: scale(0.98); }
+    
+
+    .skull-msg {
+      font-size: 42px;
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.4); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <span class="header-icon" id="header-icon">😂</span>
+    <span class="header-title" id="header-title">Joke generator</span>
+  </div>
+
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="btn-joke"   onclick="setMode('joke')">😂 Jokes</button>
+    <button class="mode-btn"        id="btn-riddle" onclick="setMode('riddle')">🧩 Riddles</button>
+  </div>
+
+  <div class="card" id="card">
+    <p class="placeholder"    id="placeholder">Press the button below to get started!</p>
+    <div class="riddle-badge" id="riddle-badge" style="display:none;">Riddle</div>
+    <p class="card-q"         id="card-q"       style="display:none;"></p>
+    <div class="card-divider" id="card-divider" style="display:none;"></div>
+    <p class="card-a"         id="card-a"       style="display:none;"></p>
+    <div class="skull-msg"    id="skull"        style="display:none;">&#128128;</div>
+  </div>
+
+  <button class="main-btn"  id="main-btn"  onclick="handleClick()">Tell me a joke</button>
+  <button class="heard-btn" id="heard-btn" onclick="handleHeard()" style="display:none;">I've heard this joke before</button>
+</div>
+
+<script>
+const jokes = [
+  { q: "Why don't scientists trust atoms?",                     a: "Because they make up everything!" },
+  { q: "What do you call a fish without eyes?",                 a: "A fsh." },
+  { q: "Why did the scarecrow win an award?",                   a: "Because he was outstanding in his field." },
+  { q: "What do you call cheese that isn't yours?",             a: "Nacho cheese." },
+  { q: "Why can't you give Elsa a balloon?",                    a: "Because she'll let it go." },
+  { q: "What did the ocean say to the beach?",                  a: "Nothing, it just waved." },
+  { q: "Why did the bicycle fall over?",                        a: "Because it was two-tired." },
+  { q: "What do you call a fake noodle?",                       a: "An impasta." },
+  { q: "How does a penguin build its house?",                   a: "Igloos it together." },
+  { q: "What do you call a sleeping dinosaur?",                 a: "A dino-snore." },
+  { q: "Why did the math book look so sad?",                    a: "Because it had too many problems." },
+  { q: "What do you call a bear with no teeth?",                a: "A gummy bear." },
+  { q: "Why did the golfer bring an extra pair of pants?",      a: "In case he got a hole in one." },
+  { q: "What do elves learn in school?",                        a: "The elf-abet." },
+  { q: "Why did the tomato turn red?",                          a: "Because it saw the salad dressing." },
+  { q: "What do you call an alligator in a vest?",              a: "An investigator." },
+  { q: "Why don't eggs tell jokes?",                            a: "Because they'd crack each other up." },
+  { q: "What do you call a pony with a cough?",                 a: "A little horse." },
+  { q: "Why did the invisible man turn down the job offer?",    a: "He couldn't see himself doing it." },
+  { q: "What do you call a factory that makes okay products?",  a: "A satisfactory." },
+  { q: "Why did the stadium get hot after the game?",           a: "All the fans left." },
+  { q: "What do you call a can opener that's broken?",          a: "A can't opener." },
+  { q: "Why do cows wear bells?",                               a: "Because their horns don't work." },
+  { q: "What do you call a fish wearing a crown?",              a: "King of the sea — a KING-fish." },
+  { q: "What do you call a snowman with a six-pack?",           a: "An abdominal snowman." },
+];
+
+const riddles = [
+  { q: "I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?",         a: "An echo." },
+  { q: "The more you take, the more you leave behind. What am I?",                                                       a: "Footsteps." },
+  { q: "I have cities, but no houses. I have mountains, but no trees. I have water, but no fish. I have roads, but no cars. What am I?", a: "A map." },
+  { q: "What has hands but can't clap?",                                                                                  a: "A clock." },
+  { q: "I'm light as a feather, but even the strongest person can't hold me for more than a few minutes. What am I?",    a: "Breath." },
+  { q: "What has a head and a tail but no body?",                                                                         a: "A coin." },
+  { q: "I'm tall when I'm young and short when I'm old. What am I?",                                                     a: "A candle." },
+  { q: "What can run but never walks, has a mouth but never talks, has a head but never weeps, has a bed but never sleeps?", a: "A river." },
+  { q: "Forward I am heavy, but backward I am not. What am I?",                                                           a: "The word 'ton' — backwards it's 'not'." },
+  { q: "What has keys but no locks, space but no room, and you can enter but can't go inside?",                           a: "A keyboard." },
+  { q: "I have an eye but cannot see. I'm stronger and faster than any man alive, but I have no limbs. What am I?",      a: "A hurricane." },
+  { q: "What comes once in a minute, twice in a moment, but never in a thousand years?",                                  a: "The letter M." },
+  { q: "I have no life, but I can die. What am I?",                                                                       a: "A battery." },
+  { q: "The more you have of me, the less you see. What am I?",                                                           a: "Darkness." },
+  { q: "What can you break, even if you never pick it up or touch it?",                                                   a: "A promise." },
+  { q: "I'm always in front of you but can't be seen. What am I?",                                                        a: "The future." },
+  { q: "What goes up but never comes down?",                                                                               a: "Your age." },
+  { q: "What has many teeth but can't bite?",                                                                              a: "A comb." },
+  { q: "I have a neck but no head, and I wear a cap. What am I?",                                                         a: "A bottle." },
+  { q: "The person who makes it sells it. The person who buys it doesn't use it. The person who uses it doesn't know it. What is it?", a: "A coffin." },
+];
+
+let mode = 'joke';
+let state = 'idle';
+let currentItem = null;
+let usedJokeIndices = [];
+let usedRiddleIndices = [];
+
+function setMode(newMode) {
+  mode = newMode;
+  const card        = document.getElementById('card');
+  const mainBtn     = document.getElementById('main-btn');
+  const heardBtn    = document.getElementById('heard-btn');
+  const headerIcon  = document.getElementById('header-icon');
+  const headerTitle = document.getElementById('header-title');
+
+  document.getElementById('btn-joke').classList.toggle('active', mode === 'joke');
+  document.getElementById('btn-riddle').classList.toggle('active', mode === 'riddle');
+
+  if (mode === 'riddle') {
+    card.classList.add('riddle-mode');
+    mainBtn.classList.add('riddle-mode');
+    headerIcon.textContent  = '🧩';
+    headerTitle.textContent = 'Riddle generator';
+  } else {
+    card.classList.remove('riddle-mode');
+    mainBtn.classList.remove('riddle-mode');
+    headerIcon.textContent  = '😂';
+    headerTitle.textContent = 'Joke generator';
+  }
+
+  // Reset to idle
+  state = 'idle';
+  currentItem = null;
+  document.getElementById('placeholder').style.display  = 'block';
+  document.getElementById('placeholder').textContent    = 'Press the button below to get started!';
+  document.getElementById('card-q').style.display       = 'none';
+  document.getElementById('card-divider').style.display = 'none';
+  document.getElementById('card-a').style.display       = 'none';
+  document.getElementById('skull').style.display        = 'none';
+  document.getElementById('riddle-badge').style.display = 'none';
+
+  mainBtn.textContent     = mode === 'joke' ? 'Tell me a joke' : 'Give me a riddle';
+  heardBtn.style.display  = 'none';
+  heardBtn.disabled       = false;
+  heardBtn.style.opacity  = '1';
+  heardBtn.style.cursor   = 'pointer';
+}
+
+function getRandom(arr, usedArr) {
+  if (usedArr.length === arr.length) usedArr.length = 0;
+  let idx;
+  do { idx = Math.floor(Math.random() * arr.length); } while (usedArr.includes(idx));
+  usedArr.push(idx);
+  return arr[idx];
+}
+
+function handleClick() {
+  const qEl      = document.getElementById('card-q');
+  const aEl      = document.getElementById('card-a');
+  const divEl    = document.getElementById('card-divider');
+  const ph       = document.getElementById('placeholder');
+  const btn      = document.getElementById('main-btn');
+  const heardBtn = document.getElementById('heard-btn');
+  const skull    = document.getElementById('skull');
+  const badge    = document.getElementById('riddle-badge');
+
+  if (state === 'idle' || state === 'answered') {
+    const arr  = mode === 'joke' ? jokes : riddles;
+    const used = mode === 'joke' ? usedJokeIndices : usedRiddleIndices;
+    currentItem = getRandom(arr, used);
+
+    ph.style.display    = 'none';
+    aEl.style.display   = 'none';
+    divEl.style.display = 'none';
+    skull.style.display = 'none';
+    badge.style.display = mode === 'riddle' ? 'inline-block' : 'none';
+
+    qEl.textContent     = currentItem.q;
+    qEl.style.display   = 'block';
+    qEl.style.animation = 'none';
+    void qEl.offsetWidth;
+    qEl.style.animation = '';
+
+    btn.textContent = mode === 'joke' ? 'Reveal the punchline' : 'Reveal the answer';
+
+    heardBtn.style.display  = 'block';
+    heardBtn.disabled       = false;
+    heardBtn.style.opacity  = '';
+    heardBtn.style.cursor   = '';
+    heardBtn.textContent    = mode === 'joke' ? "I've heard this joke before" : "I've heard this riddle before";
+
+    state = 'question';
+
+  } else if (state === 'question') {
+    aEl.textContent     = currentItem.a;
+    divEl.style.display = 'block';
+    aEl.style.display   = 'block';
+    aEl.style.animation = 'none';
+    void aEl.offsetWidth;
+    aEl.style.animation = '';
+    btn.textContent     = mode === 'joke' ? 'Next joke' : 'Next riddle';
+    state = 'answered';
+  }
+}
+
+function handleHeard() {
+  const skull    = document.getElementById('skull');
+  const heardBtn = document.getElementById('heard-btn');
+  skull.style.display = 'none';
+  void skull.offsetWidth;
+  skull.style.display  = 'block';
+  heardBtn.textContent = 'Yeah, that one is dead to me';
+  heardBtn.disabled    = true;
+  heardBtn.style.cursor  = 'default';
+}
+</script>
+
+</body>
+</html>
